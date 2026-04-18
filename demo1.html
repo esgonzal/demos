@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VÖHK – Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f4f4;--bg2:#fff;--bg3:#e8e8e8;--bg4:#f9f9f9;
+  --text:#111;--text2:#444;--text3:#888;
+  --border:#e5e5e5;--border2:#ddd;
+  --navbar:#111;--sidebar:#fff;
+  --thead:#e8e8e8;--theadtext:#111;
+  --modal:#fff;
+  --input-bg:#fff;--input-border:#ddd;
+  --row-hover:#fafafa;
+  --dd-bg:#fff;--dd-border:#ddd;--dd-hover:#f5f5f5;
+  --tooltip-bg:#333;--tooltip-text:#fff;
+}
+.dark{
+  --bg:#1a1c2e;--bg2:#222440;--bg3:#2a2d50;--bg4:#1a1c2e;
+  --text:#e0e0e0;--text2:#bbb;--text3:#777;
+  --border:#2e3158;--border2:#3a3d65;
+  --navbar:#0d0e1a;--sidebar:#1e2040;
+  --thead:#2a2d50;--theadtext:#e0e0e0;
+  --modal:#1e2040;
+  --input-bg:#252848;--input-border:#3a3d65;
+  --row-hover:#252848;
+  --dd-bg:#1e2040;--dd-border:#3a3d65;--dd-hover:#252848;
+  --tooltip-bg:#111;--tooltip-text:#fff;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
+
+/* NAVBAR */
+.navbar{background:var(--navbar);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;position:sticky;top:0;z-index:100}
+.logo{color:#fff;font-weight:900;font-size:20px;letter-spacing:1px;cursor:pointer;user-select:none}
+.logo .beta{color:#f5c518;font-size:10px;vertical-align:super;margin-left:2px}
+.nav-user{position:relative}
+.nav-user-btn{background:none;border:1.5px solid #f5c518;color:#f5c518;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px}
+.dd{position:absolute;right:0;top:110%;background:var(--dd-bg);border:1px solid var(--dd-border);border-radius:8px;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;z-index:400}
+.dd.open{display:block}
+.dd a{display:block;padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;text-decoration:none}
+.dd a:hover{background:var(--dd-hover)}
+.dd a.danger{color:#e74c3c}
+.dd-sep{border-top:1px solid var(--border)}
+.dark-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;font-size:13px;color:var(--text)}
+.tog{width:40px;height:22px;background:#ccc;border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tog.on{background:#f5c518}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s}
+.tog.on::after{left:21px}
+
+/* LOGIN */
+#page-login{min-height:100vh;background:#111;display:flex;align-items:stretch}
+.login-left{flex:0 0 420px;display:flex;align-items:center;justify-content:center;padding:40px}
+.login-box{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;text-align:center}
+.login-box h2{font-size:22px;font-weight:800;margin-bottom:6px;color:#111}
+.login-box p{font-size:13px;color:#666;margin-bottom:24px}
+.login-box label{display:block;text-align:left;font-size:13px;font-weight:600;margin-bottom:4px;margin-top:14px;color:#333}
+.login-box input{width:100%;border:1.5px solid #ddd;border-radius:20px;padding:9px 16px;font-size:14px;outline:none;color:#111;background:#fff}
+.login-box input:focus{border-color:#f5c518}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:40px}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#aaa;font-size:15px;background:none;border:none}
+.btn-login{width:100%;background:#f5c518;border:none;border-radius:20px;padding:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:20px;color:#111}
+.btn-login:hover{background:#e0b010}
+.login-brand{font-size:22px;font-weight:900;letter-spacing:1px;margin-top:20px;color:#111}
+.login-brand .dot{color:#f5c518}
+.login-note{font-size:11px;color:#aaa;margin-top:8px}
+.login-error{color:#c0392b;font-size:12px;margin-top:8px;display:none}
+.login-right{flex:1;background:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80') center/cover no-repeat;position:relative}
+.login-right::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.45)}
+
+/* MAIN */
+#page-main{display:none}
+.main-body{display:flex;min-height:calc(100vh - 52px)}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;overflow-y:auto;max-height:calc(100vh - 52px);position:sticky;top:52px}
+.sidebar h3{font-size:14px;font-weight:800;padding:0 18px 12px;color:var(--text)}
+.sb-search{margin:0 12px 10px;border:1.5px solid var(--input-border);border-radius:20px;padding:7px 12px;font-size:13px;width:calc(100% - 24px);outline:none;background:var(--input-bg);color:var(--text)}
+.sb-search:focus{border-color:#f5c518}
+.btn-crcom{display:block;margin:0 12px 14px;background:#f5c518;border:none;border-radius:20px;padding:7px 0;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 24px);text-align:center;color:#111}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 18px;cursor:pointer;font-size:13px;color:var(--text2);border-left:3px solid transparent;transition:background .1s}
+.sb-item:hover{background:var(--row-hover)}
+.sb-item.active{background:var(--row-hover);border-left-color:#f5c518;font-weight:600;color:var(--text)}
+
+/* CONTENT */
+.content{flex:1;padding:28px 32px;overflow:auto;min-width:0}
+
+/* COMMUNITY */
+.com-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px}
+.com-title{font-size:26px;font-weight:800}
+.com-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-pill{border:1.5px solid #f5c518;background:transparent;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);position:relative}
+.btn-pill:hover{background:#f5c518;color:#111}
+.pill-dd-wrap{position:relative;display:inline-block}
+.pill-dd{position:absolute;right:0;top:110%;background:var(--dd-bg);border:1px solid var(--dd-border);border-radius:8px;min-width:190px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:300;white-space:nowrap}
+.pill-dd.open{display:block}
+.pill-dd a{display:block;padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer}
+.pill-dd a:hover{background:var(--dd-hover)}
+.pill-dd a.danger{color:#e74c3c}
+.locks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px}
+.lock-card{background:var(--bg2);border-radius:12px;overflow:hidden;cursor:pointer;border:1.5px solid var(--border);transition:box-shadow .15s}
+.lock-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.lock-card img{width:100%;height:130px;object-fit:cover}
+.lock-card .lci{padding:10px 12px}
+.lock-card .lcn{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.lock-card .lcs{font-size:11px;color:var(--text3);margin-top:2px}
+.lock-card .lcs.online{color:#27ae60}
+
+/* LOCK DETAIL */
+.lk-head{margin-bottom:20px}
+.lk-head h2{font-size:24px;font-weight:800}
+.lk-head .sub{font-size:13px;color:var(--text3)}
+.lk-head .role{font-size:13px;color:var(--text2)}
+.lk-toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.lk-icons{display:flex;gap:8px;flex-shrink:0;position:relative}
+.ib{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text);transition:background .15s;position:relative}
+.ib:hover{background:var(--bg3)}
+/* tooltip */
+.ib .tip{position:absolute;top:44px;right:0;background:var(--tooltip-bg);color:var(--tooltip-text);border-radius:6px;padding:7px 10px;font-size:11px;white-space:normal;width:200px;line-height:1.4;display:none;z-index:350;pointer-events:none}
+.ib:hover .tip{display:block}
+/* icon dropdown */
+.ib-dd{position:absolute;top:44px;right:0;background:var(--dd-bg);border:1px solid var(--dd-border);border-radius:8px;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:400;white-space:nowrap}
+.ib-dd.open{display:block}
+.ib-dd a{display:block;padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer}
+.ib-dd a:hover{background:var(--dd-hover)}
+.tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 20px;cursor:pointer;font-size:14px;color:var(--text3);border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
+.tab.active{color:var(--text);font-weight:700;border-bottom-color:#f5c518}
+.tab:hover:not(.active){color:var(--text2)}
+
+/* TABLE */
+.tbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.si{border:1.5px solid var(--input-border);border-radius:20px;padding:7px 14px;font-size:13px;outline:none;width:220px;background:var(--input-bg);color:var(--text)}
+.si:focus{border-color:#f5c518}
+.tbr{display:flex;gap:8px}
+.by{background:#f5c518;border:none;border-radius:20px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;color:#111}
+.by:hover{background:#e0b010}
+.bo{background:var(--bg2);border:1.5px solid var(--border2);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text)}
+.bo:hover{background:var(--bg3)}
+table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:10px;overflow:hidden;font-size:13px}
+thead tr{background:var(--thead)}
+thead th{padding:11px 14px;text-align:left;font-weight:700;font-size:13px;color:var(--theadtext)}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--row-hover)}
+td{padding:11px 14px;vertical-align:middle;color:var(--text)}
+.sv{color:#27ae60;font-weight:600}
+.sc{color:#e67e22;font-weight:600}
+.si2{color:#e74c3c;font-weight:600}
+.se{color:#27ae60;font-weight:600}
+.sf{color:#e74c3c;font-weight:600}
+.ob{cursor:pointer;font-size:12px;font-weight:600;background:none;border:none;padding:0;margin-right:6px}
+.oe{color:var(--text2)}.oe:hover{color:var(--text)}
+.od{color:#e74c3c}.od:hover{color:#c0392b}
+.oa{color:var(--text2)}.oa:hover{color:var(--text)}
+.back-btn{background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:6px;padding:0}
+.back-btn:hover{color:var(--text)}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:500}
+.mo.open{display:flex}
+.dark .mo{background:rgba(0,0,0,.65)}
+.mb{background:var(--modal);border-radius:16px;padding:32px;width:100%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto}
+.mb h3{font-size:17px;font-weight:800;margin-bottom:20px;color:var(--text)}
+.mb label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;margin-top:14px;color:var(--text2)}
+.mb input,.mb select{width:100%;border:1.5px solid var(--input-border);border-radius:20px;padding:9px 14px;font-size:13px;outline:none;background:var(--input-bg);color:var(--text)}
+.mb input:focus,.mb select:focus{border-color:#f5c518}
+.mf{display:flex;gap:12px;margin-top:24px;justify-content:center}
+.mf button{background:#f5c518;border:none;border-radius:20px;padding:9px 28px;font-size:14px;font-weight:700;cursor:pointer;color:#111}
+.mf button:hover{background:#e0b010}
+.mf button.no{background:var(--bg3);color:var(--text)}
+.mf button.no:hover{background:var(--border2)}
+.mtop-btn{position:absolute;top:16px;right:20px;background:#f5c518;border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;color:#111}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text)}
+.padd{width:32px;height:32px;background:#f5c518;border:none;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#111}
+.msep{border-top:1px solid var(--border);margin:14px 0}
+.confirm-q{font-size:15px;font-weight:700;text-align:center;padding:8px 0 20px;color:var(--text)}
+/* checkbox table */
+.ctbl{width:100%;border-collapse:collapse;margin:10px 0}
+.ctbl th{padding:8px 14px;text-align:left;font-size:13px;font-weight:700;background:var(--thead);color:var(--theadtext)}
+.ctbl td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
+.ctbl input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#f5c518}
+/* badge code */
+.code-badge{background:var(--bg3);border-radius:10px;padding:14px;margin-top:14px;text-align:center}
+.code-num{font-size:26px;font-weight:800;letter-spacing:4px;color:var(--text)}
+.code-exp{font-size:12px;color:var(--text3);margin-top:4px}
+/* datos esenciales */
+.dr{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dr:last-child{border-bottom:none}
+.dl{color:var(--text3)}
+.dv{color:var(--text);font-weight:500}
+/* reg filters */
+.rf{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.rf select,.rf input{border:1.5px solid var(--input-border);border-radius:8px;padding:7px 12px;font-size:13px;outline:none;background:var(--input-bg);color:var(--text)}
+.rf input{width:130px}
+/* open lock anim */
+.lock-open-msg{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:700;z-index:600;opacity:0;transition:opacity .3s}
+.lock-open-msg.show{opacity:1}
+.demo-badge{position:fixed;bottom:16px;right:16px;background:#111;color:#fff;border-radius:8px;padding:8px 14px;font-size:11px;z-index:1000;opacity:.8}
+.demo-badge strong{color:#f5c518}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="page-login">
+  <div class="login-left">
+    <div class="login-box">
+      <h2>Bienvenido 👋</h2>
+      <p>Administra los accesos de forma rápida y eficiente</p>
+      <label>Email / Celular</label>
+      <input type="text" id="lu" placeholder="" autocomplete="off">
+      <label>Contraseña</label>
+      <div class="pw-wrap">
+        <input type="password" id="lp" placeholder="">
+        <button class="pw-eye" onclick="togglePw()">👁</button>
+      </div>
+      <div class="login-error" id="lerr">Credenciales incorrectas</div>
+      <button class="btn-login" onclick="doLogin()">Iniciar Sesión</button>
+      <div class="login-brand">VÖHK<span class="dot">.</span></div>
+      <div class="login-note">Demo · <strong>demo@vohk.cl</strong> / <strong>demo1234</strong></div>
+    </div>
+  </div>
+  <div class="login-right"></div>
+</div>
+
+<!-- MAIN -->
+<div id="page-main">
+  <div class="navbar">
+    <div class="logo" onclick="goHome()">VÖHK<span class="beta">BETA</span></div>
+    <div class="nav-user">
+      <button class="nav-user-btn" id="nub" onclick="toggleDd('nav-dd')"></button>
+      <div class="dd" id="nav-dd">
+        <a onclick="goHome();closeDd('nav-dd')">Mis Comunidades</a>
+        <div class="dark-row">Dark Mode <div class="tog" id="dtog" onclick="toggleDark()"></div></div>
+        <div class="dd-sep"></div>
+        <a onclick="doLogout()">Cerrar Sesión</a>
+      </div>
+    </div>
+  </div>
+  <div class="main-body">
+    <div class="sidebar">
+      <h3>Mis Comunidades</h3>
+      <input class="sb-search" placeholder="Busqueda" id="sbsearch" oninput="filterSb()">
+      <button class="btn-crcom" onclick="openCreateCom()">Crear Comunidad</button>
+      <div id="sb-list"></div>
+    </div>
+    <div class="content">
+      <!-- COMMUNITY PAGE -->
+      <div id="pc">
+        <div class="com-header">
+          <div class="com-title" id="ctitle"></div>
+          <div class="com-actions">
+            <button class="btn-pill">Invitaciones</button>
+            <button class="btn-pill">Descargar eKeys</button>
+            <div class="pill-dd-wrap">
+              <button class="btn-pill" onclick="toggleDd('dd-editar')">Editar</button>
+              <div class="dd pill-dd" id="dd-editar">
+                <a onclick="openEditarNombre();closeDd('dd-editar')">Editar Nombre</a>
+                <a class="danger" onclick="openEliminarCom();closeDd('dd-editar')">Eliminar Comunidad</a>
+              </div>
+            </div>
+            <div class="pill-dd-wrap">
+              <button class="btn-pill" onclick="toggleDd('dd-adm')">Administrar Cerraduras</button>
+              <div class="dd pill-dd" id="dd-adm">
+                <a onclick="openAgregar();closeDd('dd-adm')">Agregar Dispositivo</a>
+                <a onclick="openRemover();closeDd('dd-adm')">Remover Dispositivo</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="locks-grid" id="lgrid"></div>
+      </div>
+      <!-- LOCK PAGE -->
+      <div id="pl" style="display:none">
+        <button class="back-btn" onclick="backToCom()">← Volver a comunidad</button>
+        <div class="lk-head">
+          <div class="lk-toprow">
+            <div>
+              <h2 id="lkname"></h2>
+              <div class="sub" id="lkcom"></div>
+              <div class="role">Rol: Administrador Principal</div>
+            </div>
+            <div class="lk-icons" id="lkicons"></div>
+          </div>
+        </div>
+        <div class="tabs" id="tabsbar"></div>
+        <div id="tabcontent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="moClick(event)"><div class="mb" id="mb"></div></div>
+<div class="lock-open-msg" id="lomsg">🔓 Cerradura abierta</div>
+<div class="demo-badge">Demo — <strong>recarga para resetear</strong></div>
+
+<script>
+// ─── DATA ───
+const DEMO={email:'demo@vohk.cl',pass:'demo1234'};
+const IMG='https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70';
+let nid=200;
+
+let COMS=[
+  {id:1,name:'SAMPLE'},{id:2,name:'Edificio Zeki Kursun'},{id:3,name:'Edificio Vista Plaza'},
+  {id:4,name:'Edificio New'},{id:5,name:'Edificio Nahuel'},{id:6,name:'Edificio Borde Rio'},
+  {id:7,name:'Edificio Challupen'},{id:8,name:'Edificio Terralta'},{id:9,name:'Sin Asociar',special:true},
+];
+
+let LOCKS=[
+  {id:10,name:'Cerrojo Palm Vein (Sa...',status:'Offline',comId:1,bat:72,hub:false},
+  {id:11,name:'K1 Face ID - Sample',   status:'Offline',comId:1,bat:45,hub:false},
+  {id:12,name:'K1 Sample',             status:'Offline',comId:1,bat:88,hub:false},
+  {id:13,name:'R15 Single Acces (Sam...',status:'Offline',comId:1,bat:31,hub:false},
+  {id:14,name:'S-11 Black',            status:'Online', comId:1,bat:65,hub:true},
+  {id:15,name:'Z-1 Sample',            status:'Offline',comId:1,bat:20,hub:false},
+  {id:20,name:'Acceso Principal',      status:'Online', comId:2,bat:90,hub:true},
+  {id:21,name:'Puerta Trasera',        status:'Offline',comId:2,bat:55,hub:false},
+  {id:30,name:'Entrada Lobby',         status:'Online', comId:3,bat:78,hub:true},
+  {id:31,name:'Estacionamiento',       status:'Offline',comId:3,bat:42,hub:false},
+  {id:40,name:'Torre A - Acceso',      status:'Online', comId:4,bat:83,hub:true},
+  {id:50,name:'Portón Principal',      status:'Offline',comId:5,bat:15,hub:false},
+  {id:60,name:'Acceso Borde Rio',      status:'Online', comId:6,bat:95,hub:true},
+  {id:70,name:'1905 tucapel',          status:'Offline',comId:9,bat:50,hub:false},
+  {id:71,name:'Acceso Principal (Lin 40)',status:'Offline',comId:9,bat:60,hub:false},
+  {id:72,name:'ALPINO 11',             status:'Online', comId:9,bat:75,hub:true},
+  {id:73,name:'CONDOMINIO INGLES',     status:'Offline',comId:9,bat:30,hub:false},
+];
+
+// per-lock data, lazy init
+const LD={ekeys:{},codigos:{},tarjetas:{},huellas:{},registros:{}};
+function initLD(lid,t){
+  if(LD[t][lid]) return;
+  if(t==='ekeys') LD.ekeys[lid]=[
+    {id:1,nombre:'Javiera Mizunuma Satt',cuenta:'+56941674323',rol:'Administrador Secundario',asig:'09/04/2025 12:43',validez:'Permanente',estado:'Valido'},
+    {id:2,nombre:'Camilo Vohk',cuenta:'+56987607072',rol:'Usuario',asig:'09/04/2025 12:49',validez:'Permanente',estado:'Valido'},
+    {id:3,nombre:'Esteban',cuenta:'+56995930960',rol:'Usuario',asig:'21/08/2025 14:01',validez:'2026/04/01 12:00 - 2026/04/30 16:00',estado:'Valido'},
+    {id:4,nombre:'Rodrigo',cuenta:'ro.hidalgoc@gmail.com',rol:'Administrador Secundario',asig:'26/03/2026 13:03',validez:'Permanente',estado:'Valido'},
+    {id:5,nombre:'Pamela',cuenta:'pamelagutierrezavello@gmail.com',rol:'Administrador Secundario',asig:'26/03/2026 13:03',validez:'Permanente',estado:'Valido'},
+    {id:6,nombre:'fabian',cuenta:'fabian.jara.varela@gmail.com',rol:'Usuario',asig:'26/03/2026 13:03',validez:'Permanente',estado:'Valido'},
+    {id:7,nombre:'Ivan',cuenta:'ivanrangel1992@gmail.com',rol:'Administrador Secundario',asig:'26/03/2026 13:03',validez:'Permanente',estado:'Valido'},
+    {id:8,nombre:'nico',cuenta:'+56966508973',rol:'Usuario',asig:'26/03/2026 13:03',validez:'Permanente',estado:'Valido'},
+  ];
+  if(t==='codigos') LD.codigos[lid]=[
+    {id:1,nombre:'clave',contra:'0000',creador:'ro.hidalgoc@gmail.com',asig:'26/03/2026 13:03',validez:'Permanente',estado:'Valido'},
+    {id:2,nombre:'para probar',contra:'69899678',creador:'soporte@vohk.cl',asig:'17/12/2025 10:17',validez:'Permanente',estado:'Valido'},
+    {id:3,nombre:'javiera',contra:'35726755',creador:'+56941674323',asig:'26/11/2025 09:54',validez:'26/11/2025 09:54 Una Vez',estado:'Caducado'},
+    {id:4,nombre:'codigo',contra:'2580',creador:'esteban.gonzalez.m@mail.pucv.cl',asig:'21/08/2025 15:36',validez:'21/08/2025 15:36 - 21/08/2025 18:36',estado:'Inactivo'},
+    {id:5,nombre:'sssss',contra:'112221',creador:'esteban.gonzalez.m@mail.pucv.cl',asig:'21/08/2025 15:31',validez:'21/08/2025 15:31 - 21/08/2025 18:31',estado:'Inactivo'},
+  ];
+  if(t==='tarjetas') LD.tarjetas[lid]=[
+    {id:1,nombre:'1',numero:'942695105',creador:'soporte@vohk.cl',asig:'09/04/2025 17:15',validez:'Permanente',estado:'Valido'},
+    {id:2,nombre:'10',numero:'2825970369',creador:'soporte@vohk.cl',asig:'09/04/2025 17:15',validez:'Permanente',estado:'Valido'},
+    {id:3,nombre:'11',numero:'4198430134',creador:'soporte@vohk.cl',asig:'09/04/2025 17:15',validez:'Permanente',estado:'Valido'},
+    {id:4,nombre:'12',numero:'2017062593',creador:'soporte@vohk.cl',asig:'09/04/2025 17:15',validez:'Permanente',estado:'Valido'},
+  ];
+  if(t==='huellas') LD.huellas[lid]=[
+    {id:1,nombre:'cris',creador:'soporte@vohk.cl',asig:'27/06/2025 11:50',validez:'Permanente',estado:'Valido'},
+    {id:2,nombre:'javiera',creador:'+56941674323',asig:'09/04/2025 13:06',validez:'Permanente',estado:'Valido'},
+  ];
+  if(t==='registros') LD.registros[lid]=[
+    {id:1,op:'Soporte Vöhk',metodo:'Abrir con la aplicación',hora:'17/04/2026 16:25',estado:'Exito'},
+    {id:2,op:'Soporte Vöhk',metodo:'Abrir con la aplicación',hora:'27/01/2026 08:25',estado:'Exito'},
+    {id:3,op:'',metodo:'¡Detectados intentos de acceso no autorizados!',hora:'27/01/2026 08:24',estado:'Exito'},
+    {id:4,op:'javiera',metodo:'unlock by passcode failed—The door has been double locked',hora:'18/01/2026 03:41',estado:'Fallido'},
+    {id:5,op:'cris',metodo:'Abrir con huella digital',hora:'12/01/2026 07:58',estado:'Fallido'},
+    {id:6,op:'para probar',metodo:'Abrir con código de acceso—para probar',hora:'18/11/2025 03:11',estado:'Fallido'},
+  ];
+}
+function gld(lid,t){initLD(lid,t);return LD[t][lid];}
+
+// ─── STATE ───
+let S={com:null,lock:null,tab:'ekeys',dark:false};
+
+// ─── AUTH ───
+function togglePw(){const i=document.getElementById('lp');i.type=i.type==='password'?'text':'password';}
+function doLogin(){
+  const u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value.trim();
+  if(u===DEMO.email&&p===DEMO.pass){
+    document.getElementById('page-login').style.display='none';
+    document.getElementById('page-main').style.display='block';
+    document.getElementById('nub').textContent=u;
+    renderSb();selectCom(1);
+  } else {document.getElementById('lerr').style.display='block';}
+}
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){
+  document.getElementById('page-main').style.display='none';
+  document.getElementById('page-login').style.display='flex';
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+  closeDd('nav-dd');
+}
+
+// ─── DARK MODE ───
+function toggleDark(){
+  S.dark=!S.dark;
+  document.body.classList.toggle('dark',S.dark);
+  document.getElementById('dtog').classList.toggle('on',S.dark);
+}
+
+// ─── DROPDOWNS ───
+function toggleDd(id){const el=document.getElementById(id);el.classList.toggle('open');
+  document.querySelectorAll('.dd.open,.pill-dd.open,.ib-dd.open').forEach(e=>{if(e.id!==id)e.classList.remove('open');});
+}
+function closeDd(id){document.getElementById(id)&&document.getElementById(id).classList.remove('open');}
+function closeAllDd(){document.querySelectorAll('.dd,.pill-dd,.ib-dd').forEach(e=>e.classList.remove('open'));}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.nav-user')&&!e.target.closest('.pill-dd-wrap')&&!e.target.closest('.ib'))closeAllDd();
+});
+
+// ─── SIDEBAR ───
+function renderSb(f=''){
+  const list=document.getElementById('sb-list');list.innerHTML='';
+  COMS.filter(c=>c.name.toLowerCase().includes(f.toLowerCase())).forEach(c=>{
+    const d=document.createElement('div');
+    d.className='sb-item'+(S.com===c.id?' active':'');
+    d.innerHTML=`<span>🏠</span>${c.name}`;
+    d.onclick=()=>selectCom(c.id);
+    list.appendChild(d);
+  });
+}
+function filterSb(){renderSb(document.getElementById('sbsearch').value);}
+function goHome(){if(S.com)selectCom(S.com);}
+
+// ─── COMMUNITY ───
+function selectCom(id){
+  S.com=id;S.lock=null;closeAllDd();
+  renderSb(document.getElementById('sbsearch').value);
+  document.getElementById('pc').style.display='block';
+  document.getElementById('pl').style.display='none';
+  const com=COMS.find(c=>c.id===id);
+  document.getElementById('ctitle').textContent=com?com.name:'';
+  renderLocks(id);
+}
+function renderLocks(comId){
+  const grid=document.getElementById('lgrid');grid.innerHTML='';
+  const locks=LOCKS.filter(l=>l.comId===comId);
+  locks.forEach(l=>{
+    const d=document.createElement('div');d.className='lock-card';
+    d.innerHTML=`<img src="${IMG}" alt="${l.name}"><div class="lci"><div class="lcn">${l.name}</div><div class="lcs${l.status==='Online'?' online':''}">${l.status}</div></div>`;
+    d.onclick=()=>openLock(l);grid.appendChild(d);
+  });
+}
+
+// community actions
+function openCreateCom(){
+  showModal(`<h3>Crear Comunidad</h3>
+  <label>Nombre</label><input type="text" id="m-cn" placeholder="Nombre de la comunidad">
+  <div class="mf"><button class="no" onclick="closeModal()">Cancelar</button><button onclick="saveCreateCom()">Crear</button></div>`);
+}
+function saveCreateCom(){
+  const n=document.getElementById('m-cn').value.trim();
+  if(!n)return;
+  const id=nid++;
+  COMS.splice(COMS.length-1,0,{id,name:n});
+  closeModal();renderSb();selectCom(id);
+}
+function openEditarNombre(){
+  const com=COMS.find(c=>c.id===S.com);
+  showModal(`<h3>Editar Nombre</h3>
+  <label>Nuevo nombre</label><input type="text" id="m-nn" value="${com?com.name:''}">
+  <div class="mf"><button class="no" onclick="closeModal()">Cancelar</button><button onclick="saveEditarNombre()">Guardar</button></div>`);
+}
+function saveEditarNombre(){
+  const n=document.getElementById('m-nn').value.trim();if(!n)return;
+  const com=COMS.find(c=>c.id===S.com);if(com){com.name=n;}
+  closeModal();renderSb();document.getElementById('ctitle').textContent=n;
+}
+function openEliminarCom(){
+  const com=COMS.find(c=>c.id===S.com);
+  showModal(`<div class="confirm-q">¿Eliminar la comunidad "${com?com.name:''}"?<br><small style="font-weight:400;font-size:12px;color:var(--text3)">Las cerraduras pasarán a Sin Asociar</small></div>
+  <div class="mf"><button class="no" onclick="closeModal()">No</button><button onclick="saveEliminarCom()">Sí, eliminar</button></div>`);
+}
+function saveEliminarCom(){
+  LOCKS.filter(l=>l.comId===S.com).forEach(l=>l.comId=9);
+  COMS=COMS.filter(c=>c.id!==S.com);
+  closeModal();renderSb();selectCom(COMS[0].id);
+}
+function openRemover(){
+  const locks=LOCKS.filter(l=>l.comId===S.com);
+  showModal(`<h3>Remover Cerradura de ${COMS.find(c=>c.id===S.com)?.name||''}</h3>
+  <table class="ctbl"><thead><tr><th>Nombre</th><th>Remover</th></tr></thead><tbody>
+  ${locks.map(l=>`<tr><td>${l.name}</td><td><input type="checkbox" id="rm${l.id}"></td></tr>`).join('')}
+  </tbody></table>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveRemover()">Remover</button></div>`);
+}
+function saveRemover(){
+  LOCKS.filter(l=>l.comId===S.com).forEach(l=>{
+    if(document.getElementById('rm'+l.id)?.checked){l.comId=9;}
+  });closeModal();renderLocks(S.com);
+}
+function openAgregar(){
+  const avail=LOCKS.filter(l=>l.comId===9);
+  if(!avail.length){showModal(`<div class="confirm-q">No hay cerraduras sin asociar disponibles</div><div class="mf"><button onclick="closeModal()">Cerrar</button></div>`);return;}
+  showModal(`<h3>Agregar Dispositivo a ${COMS.find(c=>c.id===S.com)?.name||''}</h3>
+  <table class="ctbl"><thead><tr><th>Nombre</th><th>Agregar</th></tr></thead><tbody>
+  ${avail.map(l=>`<tr><td>${l.name}</td><td><input type="checkbox" id="ag${l.id}"></td></tr>`).join('')}
+  </tbody></table>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveAgregar()">Agregar</button></div>`);
+}
+function saveAgregar(){
+  LOCKS.filter(l=>l.comId===9).forEach(l=>{
+    if(document.getElementById('ag'+l.id)?.checked){l.comId=S.com;}
+  });closeModal();renderLocks(S.com);
+}
+
+// ─── LOCK ───
+function openLock(lock){
+  S.lock=lock.id;
+  document.getElementById('pc').style.display='none';
+  document.getElementById('pl').style.display='block';
+  document.getElementById('lkname').textContent=lock.name;
+  document.getElementById('lkcom').textContent='Comunidad: '+(COMS.find(c=>c.id===lock.comId)?.name||'Sin Asociar');
+  renderIcons(lock);
+  renderTabs('ekeys');
+}
+function backToCom(){selectCom(S.com);}
+
+function renderIcons(lock){
+  const wrap=document.getElementById('lkicons');
+  wrap.innerHTML=`
+    <div class="ib" onclick="toggleDd('idd-bat')">🔋<span class="tip">La cerradura tiene ${lock.bat}% de batería restante</span>
+      <div class="dd ib-dd" id="idd-bat" style="min-width:200px;padding:10px 14px;font-size:13px;color:var(--text)">
+        <div style="margin-bottom:6px;font-weight:600">Batería</div>
+        <div style="background:var(--bg3);border-radius:20px;height:10px;overflow:hidden">
+          <div style="background:${lock.bat>30?'#27ae60':'#e74c3c'};width:${lock.bat}%;height:100%;border-radius:20px"></div>
+        </div>
+        <div style="margin-top:6px;color:var(--text3)">${lock.bat}% restante</div>
+      </div>
+    </div>
+    <div class="ib" onclick="toggleDd('idd-hub')">📶<span class="tip">${lock.hub?'Cerradura conectada a dispositivo hub':'La cerradura no está conectada a un dispositivo hub'}</span>
+      <div class="dd ib-dd" id="idd-hub" style="min-width:200px;padding:10px 14px;font-size:13px;color:var(--text)">
+        <div style="font-weight:600;margin-bottom:4px">Estado Hub</div>
+        <div style="color:${lock.hub?'#27ae60':'#e74c3c'}">${lock.hub?'✓ Conectado a hub':'✗ Sin conexión hub'}</div>
+        <div style="color:var(--text3);margin-top:4px;font-size:12px">${lock.status==='Online'?'Online — apertura remota disponible':'Offline — sin conexión a internet'}</div>
+      </div>
+    </div>
+    <div class="ib" onclick="toggleDd('idd-cfg')">⚙️<span class="tip">Configuración de la cerradura</span>
+      <div class="dd ib-dd" id="idd-cfg">
+        <a onclick="openEditarNombreLock();closeAllDd()">Editar Nombre</a>
+        <a onclick="closeAllDd();showModal('<h3>Modo de Paso</h3><p style=\\'font-size:13px;color:var(--text2);margin-bottom:16px\\'>Configura el modo de apertura automática en horarios específicos.</p><div class=\\'mf\\'><button onclick=\\"closeModal()\\">Cerrar</button></div>')">Modo de Paso</a>
+        <a onclick="openDatosEsenciales();closeAllDd()">Datos esenciales</a>
+      </div>
+    </div>
+    <div class="ib" onclick="openInvitacion()">＋<span class="tip">Crea un código con duración de 3 horas</span></div>
+    <div class="ib" onclick="abrirCerradura()">🚪<span class="tip">Presione para abrir la cerradura remotamente si es que está conectada a un dispositivo hub</span></div>`;
+}
+
+function openEditarNombreLock(){
+  const lock=LOCKS.find(l=>l.id===S.lock);
+  showModal(`<h3>Editar Nombre</h3>
+  <label>Nuevo nombre</label><input type="text" id="m-ln" value="${lock?lock.name:''}">
+  <div class="mf"><button class="no" onclick="closeModal()">Cancelar</button><button onclick="saveLockName()">Guardar</button></div>`);
+}
+function saveLockName(){
+  const n=document.getElementById('m-ln').value.trim();if(!n)return;
+  const lock=LOCKS.find(l=>l.id===S.lock);if(lock){lock.name=n;}
+  document.getElementById('lkname').textContent=n;closeModal();
+}
+function openDatosEsenciales(){
+  const lock=LOCKS.find(l=>l.id===S.lock);if(!lock)return;
+  showModal(`<h3>Datos Esenciales</h3>
+  <div class="dr"><span class="dl">Nombre</span><span class="dv">${lock.name}</span></div>
+  <div class="dr"><span class="dl">Estado</span><span class="dv" style="color:${lock.status==='Online'?'#27ae60':'#888'}">${lock.status}</span></div>
+  <div class="dr"><span class="dl">Batería</span><span class="dv">${lock.bat}%</span></div>
+  <div class="dr"><span class="dl">Hub</span><span class="dv">${lock.hub?'Conectado':'No conectado'}</span></div>
+  <div class="dr"><span class="dl">Comunidad</span><span class="dv">${COMS.find(c=>c.id===lock.comId)?.name||'Sin Asociar'}</span></div>
+  <div class="dr"><span class="dl">ID Dispositivo</span><span class="dv">TTL-${lock.id.toString().padStart(6,'0')}</span></div>
+  <div class="dr"><span class="dl">Firmware</span><span class="dv">v3.2.1</span></div>
+  <div class="mf" style="margin-top:20px"><button onclick="closeModal()">Cerrar</button></div>`);
+}
+function openInvitacion(){
+  const code=Math.floor(100000+Math.random()*900000).toString();
+  const now=new Date();const exp=new Date(now.getTime()+3*60*60*1000);
+  const fmt=d=>`${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  showModal(`<h3>Invitación — Código temporal</h3>
+  <p style="font-size:13px;color:var(--text2)">Código válido por 3 horas. Compártelo por email o mensaje.</p>
+  <div class="code-badge"><div class="code-num">${code}</div><div class="code-exp">Válido hasta: ${fmt(exp)}</div></div>
+  <div class="mf"><button onclick="closeModal()">Cerrar</button></div>`);
+}
+function abrirCerradura(){
+  const lock=LOCKS.find(l=>l.id===S.lock);
+  if(!lock){return;}
+  if(lock.status!=='Online'||!lock.hub){
+    showModal(`<div class="confirm-q" style="color:#e74c3c">Sin conexión</div>
+    <p style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:16px">La cerradura no está conectada a internet a través de un hub. La apertura remota no está disponible.</p>
+    <div class="mf"><button onclick="closeModal()">Cerrar</button></div>`);return;
+  }
+  closeModal();
+  const msg=document.getElementById('lomsg');
+  msg.textContent='🔓 Cerradura abierta remotamente';
+  msg.classList.add('show');
+  setTimeout(()=>msg.classList.remove('show'),2500);
+  // add registro
+  initLD(S.lock,'registros');
+  LD.registros[S.lock].unshift({id:nid++,op:'demo@vohk.cl',metodo:'Abrir con la aplicación',hora:fmtNow(),estado:'Exito'});
+}
+
+// ─── TABS ───
+const TABS=[['ekeys','Ekeys'],['codigos','Códigos'],['tarjetas','Tarjetas'],['huellas','Huellas'],['registros','Registros']];
+function renderTabs(active){
+  S.tab=active;
+  const bar=document.getElementById('tabsbar');bar.innerHTML='';
+  TABS.forEach(([k,l])=>{
+    const t=document.createElement('div');t.className='tab'+(k===active?' active':'');
+    t.textContent=l;t.onclick=()=>renderTabs(k);bar.appendChild(t);
+  });
+  const tc=document.getElementById('tabcontent');
+  if(active==='ekeys') renderEkeys(tc);
+  else if(active==='codigos') renderCodigos(tc);
+  else if(active==='tarjetas') renderTarjetas(tc);
+  else if(active==='huellas') renderHuellas(tc);
+  else renderRegistros(tc);
+}
+
+// ─── EKEYS ───
+function renderEkeys(tc){
+  const data=gld(S.lock,'ekeys');
+  tc.innerHTML=`<div class="tbar"><input class="si" placeholder="Buscar Ekeys..." id="se" oninput="filterEkeys()"><div class="tbr"><button class="by" onclick="openNewEkey()">Generar</button><button class="bo" onclick="spinBtn(this)">Actualizar</button></div></div>
+  <table><thead><tr><th>Nombre</th><th>Cuenta de destinatario</th><th>Rol</th><th>Tiempo de asignación</th><th>Período de Validez</th><th>Estado</th><th>Operacion</th></tr></thead><tbody id="etbody"></tbody></table>`;
+  filterEkeys();
+}
+function filterEkeys(){
+  const q=(document.getElementById('se')||{value:''}).value.toLowerCase();
+  const data=gld(S.lock,'ekeys').filter(r=>r.nombre.toLowerCase().includes(q)||r.cuenta.toLowerCase().includes(q));
+  const tb=document.getElementById('etbody');if(!tb)return;tb.innerHTML='';
+  data.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.nombre}</td><td>${r.cuenta}</td><td>${r.rol}</td><td>${r.asig}</td><td>${r.validez}</td><td class="${stCls(r.estado)}">${r.estado}</td>
+    <td><button class="ob oe" onclick="openEditEkey(${r.id})">Editar</button><button class="ob oa" onclick="alert('Panel de admin — versión completa')">Admin</button><button class="ob od" onclick="confirmDel('ekeys',${r.id},'la ekey')">Eliminar</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function openNewEkey(){
+  showModal(`<button class="mtop-btn">Generar múltiples eKeys</button>
+  <h3>Nueva eKey</h3>
+  <label>Cuenta de Destino</label><input type="text" id="m-cuenta" placeholder="email/celular">
+  <label>Nombre de la eKey</label><input type="text" id="m-nombre" placeholder="...">
+  <label>Tipo de eKey</label><select id="m-tipo"><option>No seleccionado</option><option>Permanente</option><option>Periódica</option><option>De un Uso</option></select>
+  <div class="tog-row">Cerradura <button class="padd">＋</button></div>
+  <div class="tog-row">Apertura Remota <div class="tog" onclick="this.classList.toggle('on')"></div></div>
+  <div class="tog-row">Administrador Autorizado <div class="tog" onclick="this.classList.toggle('on')"></div></div>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveNewEkey()">Generar</button></div>`);
+}
+function saveNewEkey(){
+  const cuenta=document.getElementById('m-cuenta').value.trim(),nombre=document.getElementById('m-nombre').value.trim(),tipo=document.getElementById('m-tipo').value;
+  if(!cuenta||!nombre||tipo==='No seleccionado'){alert('Completa todos los campos');return;}
+  gld(S.lock,'ekeys').unshift({id:nid++,nombre,cuenta,rol:'Usuario',asig:fmtNow(),validez:'Permanente',estado:'Valido'});
+  closeModal();renderTabs('ekeys');
+}
+function openEditEkey(id){
+  const r=gld(S.lock,'ekeys').find(x=>x.id===id);if(!r)return;
+  showModal(`<h3>Editar eKey</h3>
+  <label>Nombre</label><input type="text" id="m-nombre" value="${r.nombre}">
+  <label>Rol</label><select id="m-rol"><option${r.rol==='Usuario'?' selected':''}>Usuario</option><option${r.rol==='Administrador Secundario'?' selected':''}>Administrador Secundario</option></select>
+  <div class="msep"></div>
+  <label>Editar Período de Validez</label>
+  <div class="mrow"><div><label>Inicio — Fecha</label><input type="date" id="m-fi"></div><div><label>Hora</label><input type="time" id="m-hi"></div></div>
+  <div class="mrow"><div><label>Fin — Fecha</label><input type="date" id="m-ff"></div><div><label>Hora</label><input type="time" id="m-hf"></div></div>
+  <p style="font-size:11px;color:var(--text3);margin-top:6px">Deja vacío para mantener Permanente</p>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveEditEkey(${id})">Guardar</button></div>`);
+}
+function saveEditEkey(id){
+  const r=gld(S.lock,'ekeys').find(x=>x.id===id);if(!r)return;
+  r.nombre=document.getElementById('m-nombre').value;
+  r.rol=document.getElementById('m-rol').value;
+  const fi=document.getElementById('m-fi').value,hi=document.getElementById('m-hi').value,ff=document.getElementById('m-ff').value,hf=document.getElementById('m-hf').value;
+  if(fi&&hi&&ff&&hf){r.validez=`${fi.split('-').reverse().join('/')} ${hi} - ${ff.split('-').reverse().join('/')} ${hf}`;}
+  else if(!fi&&!hi&&!ff&&!hf){r.validez='Permanente';}
+  closeModal();renderTabs('ekeys');
+}
+
+// ─── CODIGOS ───
+function renderCodigos(tc){
+  const data=gld(S.lock,'codigos');
+  tc.innerHTML=`<div class="tbar"><input class="si" placeholder="Buscar Códigos..." id="sc" oninput="filterCodigos()"><div class="tbr"><button class="by" onclick="openNewCodigo()">Generar</button><button class="bo" onclick="spinBtn(this)">Actualizar</button></div></div>
+  <table><thead><tr><th>Nombre</th><th>Contraseña</th><th>Creador</th><th>Tiempo de asignación</th><th>Período de Validez</th><th>Estado</th><th>Operacion</th></tr></thead><tbody id="ctbody"></tbody></table>`;
+  filterCodigos();
+}
+function filterCodigos(){
+  const q=(document.getElementById('sc')||{value:''}).value.toLowerCase();
+  const data=gld(S.lock,'codigos').filter(r=>r.nombre.toLowerCase().includes(q));
+  const tb=document.getElementById('ctbody');if(!tb)return;tb.innerHTML='';
+  data.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.nombre}</td><td>${r.contra}</td><td>${r.creador}</td><td>${r.asig}</td><td>${r.validez}</td><td class="${stCls(r.estado)}">${r.estado}</td>
+    <td><button class="ob oe" onclick="openEditCodigo(${r.id})">Editar</button><button class="ob od" onclick="confirmDel('codigos',${r.id},'el código')">Eliminar</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function openNewCodigo(){
+  showModal(`<button class="mtop-btn">Generar múltiples códigos</button>
+  <h3>Nuevo Código</h3>
+  <label>Nombre del Código</label><input type="text" id="m-nombre" placeholder="...">
+  <label>Tipo de Código</label>
+  <select id="m-tipo" onchange="toggleCodigoFechas()"><option>No seleccionado</option><option>Permanente</option><option>De un Uso</option><option>Periódica</option><option>Diaria</option><option>Fin de Semana</option><option>Día de Trabajo</option><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option></select>
+  <div id="m-fechas" style="display:none">
+    <div class="mrow"><div><label>Fecha de inicio</label><input type="date" id="m-fi"></div><div><label>Hora de inicio</label><input type="time" id="m-hi"></div></div>
+    <div class="mrow"><div><label>Fecha de finalización</label><input type="date" id="m-ff"></div><div><label>Hora de finalización</label><input type="time" id="m-hf"></div></div>
+  </div>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveNewCodigo()">Generar</button></div>`);
+}
+function toggleCodigoFechas(){
+  const t=document.getElementById('m-tipo').value;
+  const show=['Periódica','De un Uso','Diaria','Fin de Semana','Día de Trabajo','Lunes','Martes','Miércoles','Jueves','Viernes'].includes(t);
+  document.getElementById('m-fechas').style.display=show?'block':'none';
+}
+function saveNewCodigo(){
+  const nombre=document.getElementById('m-nombre').value.trim(),tipo=document.getElementById('m-tipo').value;
+  if(!nombre||tipo==='No seleccionado'){alert('Completa todos los campos');return;}
+  const contra=Math.floor(1000+Math.random()*9000).toString();
+  let validez='Permanente';
+  const fi=document.getElementById('m-fi'),ff=document.getElementById('m-ff'),hi=document.getElementById('m-hi'),hf=document.getElementById('m-hf');
+  if(fi&&fi.value&&ff&&ff.value)validez=`${fi.value.split('-').reverse().join('/')} ${hi?.value||'00:00'} - ${ff.value.split('-').reverse().join('/')} ${hf?.value||'00:00'}`;
+  gld(S.lock,'codigos').unshift({id:nid++,nombre,contra,creador:'demo@vohk.cl',asig:fmtNow(),validez,estado:'Valido'});
+  closeModal();renderTabs('codigos');
+}
+function openEditCodigo(id){
+  const r=gld(S.lock,'codigos').find(x=>x.id===id);if(!r)return;
+  showModal(`<h3>Editar Código</h3>
+  <label>Nombre</label><input type="text" id="m-nombre" value="${r.nombre}">
+  <label>Contraseña</label><input type="text" id="m-contra" value="${r.contra}">
+  <div class="msep"></div>
+  <label>Editar Período de Validez</label>
+  <div class="mrow"><div><label>Inicio — Fecha</label><input type="date" id="m-fi"></div><div><label>Hora</label><input type="time" id="m-hi"></div></div>
+  <div class="mrow"><div><label>Fin — Fecha</label><input type="date" id="m-ff"></div><div><label>Hora</label><input type="time" id="m-hf"></div></div>
+  <p style="font-size:11px;color:var(--text3);margin-top:6px">Deja vacío para mantener Permanente</p>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveEditCodigo(${id})">Guardar</button></div>`);
+}
+function saveEditCodigo(id){
+  const r=gld(S.lock,'codigos').find(x=>x.id===id);if(!r)return;
+  r.nombre=document.getElementById('m-nombre').value;r.contra=document.getElementById('m-contra').value;
+  const fi=document.getElementById('m-fi').value,hi=document.getElementById('m-hi').value,ff=document.getElementById('m-ff').value,hf=document.getElementById('m-hf').value;
+  if(fi&&ff)r.validez=`${fi.split('-').reverse().join('/')} ${hi||'00:00'} - ${ff.split('-').reverse().join('/')} ${hf||'00:00'}`;
+  else if(!fi&&!ff)r.validez='Permanente';
+  closeModal();renderTabs('codigos');
+}
+
+// ─── TARJETAS ───
+function renderTarjetas(tc){
+  tc.innerHTML=`<div class="tbar"><input class="si" placeholder="Buscar Tarjetas..." id="st" oninput="filterTarjetas()"><div class="tbr"><button class="by" onclick="openNewTarjeta()">Generar</button><button class="bo" onclick="spinBtn(this)">Actualizar</button></div></div>
+  <table><thead><tr><th>Nombre</th><th>Numero</th><th>Creador</th><th>Tiempo de asignación</th><th>Período de Validez</th><th>Estado</th><th>Operacion</th></tr></thead><tbody id="ttbody"></tbody></table>`;
+  filterTarjetas();
+}
+function filterTarjetas(){
+  const q=(document.getElementById('st')||{value:''}).value.toLowerCase();
+  const data=gld(S.lock,'tarjetas').filter(r=>r.nombre.toLowerCase().includes(q)||r.numero.includes(q));
+  const tb=document.getElementById('ttbody');if(!tb)return;tb.innerHTML='';
+  data.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.nombre}</td><td>${r.numero}</td><td>${r.creador}</td><td>${r.asig}</td><td>${r.validez}</td><td class="${stCls(r.estado)}">${r.estado}</td>
+    <td><button class="ob oe" onclick="openEditTarjeta(${r.id})">Editar</button><button class="ob od" onclick="confirmDel('tarjetas',${r.id},'la tarjeta')">Eliminar</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function openNewTarjeta(){
+  showModal(`<h3>Nueva Tarjeta</h3>
+  <label>Nombre</label><input type="text" id="m-nombre" placeholder="Nombre">
+  <label>Número</label><input type="text" id="m-num" placeholder="Número de tarjeta">
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveNewTarjeta()">Generar</button></div>`);
+}
+function saveNewTarjeta(){
+  const nombre=document.getElementById('m-nombre').value.trim(),num=document.getElementById('m-num').value.trim();
+  if(!nombre||!num){alert('Completa todos los campos');return;}
+  gld(S.lock,'tarjetas').unshift({id:nid++,nombre,numero:num,creador:'demo@vohk.cl',asig:fmtNow(),validez:'Permanente',estado:'Valido'});
+  closeModal();renderTabs('tarjetas');
+}
+function openEditTarjeta(id){
+  const r=gld(S.lock,'tarjetas').find(x=>x.id===id);if(!r)return;
+  showModal(`<h3>Editar Tarjeta</h3>
+  <label>Nombre</label><input type="text" id="m-nombre" value="${r.nombre}">
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveEditTarjeta(${id})">Guardar</button></div>`);
+}
+function saveEditTarjeta(id){
+  const r=gld(S.lock,'tarjetas').find(x=>x.id===id);if(r)r.nombre=document.getElementById('m-nombre').value;
+  closeModal();renderTabs('tarjetas');
+}
+
+// ─── HUELLAS ───
+function renderHuellas(tc){
+  tc.innerHTML=`<div class="tbar"><input class="si" placeholder="Buscar Huellas..." id="sh" oninput="filterHuellas()"><div class="tbr"><button class="by" onclick="alert('Registro requiere dispositivo físico')">Exportar</button><button class="bo" onclick="spinBtn(this)">Actualizar</button></div></div>
+  <table><thead><tr><th>Nombre</th><th>Creador</th><th>Tiempo de asignación</th><th>Período de Validez</th><th>Estado</th><th>Operacion</th></tr></thead><tbody id="htbody"></tbody></table>`;
+  filterHuellas();
+}
+function filterHuellas(){
+  const q=(document.getElementById('sh')||{value:''}).value.toLowerCase();
+  const data=gld(S.lock,'huellas').filter(r=>r.nombre.toLowerCase().includes(q));
+  const tb=document.getElementById('htbody');if(!tb)return;tb.innerHTML='';
+  data.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.nombre}</td><td>${r.creador}</td><td>${r.asig}</td><td>${r.validez}</td><td class="${stCls(r.estado)}">${r.estado}</td>
+    <td><button class="ob od" onclick="confirmDel('huellas',${r.id},'la huella')">Eliminar</button> <button class="ob oe" onclick="openEditHuella(${r.id})">Editar Nombre</button> <button class="ob oe" onclick="openEditPeriodoH(${r.id})">Editar Periodo</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function openEditHuella(id){
+  const r=gld(S.lock,'huellas').find(x=>x.id===id);if(!r)return;
+  showModal(`<h3>Editar Huella</h3><label>Nombre</label><input type="text" id="m-nombre" value="${r.nombre}">
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveEditHuella(${id})">Guardar</button></div>`);
+}
+function saveEditHuella(id){
+  const r=gld(S.lock,'huellas').find(x=>x.id===id);if(r)r.nombre=document.getElementById('m-nombre').value;
+  closeModal();renderTabs('huellas');
+}
+function openEditPeriodoH(id){
+  showModal(`<h3>Introduzca la nueva fecha</h3>
+  <p style="font-size:13px;font-weight:600;margin:10px 0 6px">Periodo de inicio</p>
+  <div class="mrow"><div><label>Fecha</label><input type="date" id="m-fi"></div><div><label>Hora</label><input type="time" id="m-hi"></div></div>
+  <p style="font-size:13px;font-weight:600;margin:14px 0 6px">Periodo de finalización</p>
+  <div class="mrow"><div><label>Fecha</label><input type="date" id="m-ff"></div><div><label>Hora</label><input type="time" id="m-hf"></div></div>
+  <div class="mf"><button class="no" onclick="closeModal()">Volver</button><button onclick="saveEditPeriodoH(${id})">Guardar</button></div>`);
+}
+function saveEditPeriodoH(id){
+  const r=gld(S.lock,'huellas').find(x=>x.id===id);if(!r){closeModal();return;}
+  const fi=document.getElementById('m-fi').value,hi=document.getElementById('m-hi').value,ff=document.getElementById('m-ff').value,hf=document.getElementById('m-hf').value;
+  if(fi&&ff)r.validez=`${fi.split('-').reverse().join('/')} ${hi||'00:00'} - ${ff.split('-').reverse().join('/')} ${hf||'00:00'}`;
+  closeModal();renderTabs('huellas');
+}
+
+// ─── REGISTROS ───
+function renderRegistros(tc){
+  tc.innerHTML=`<div class="rf">
+    <select id="rf-filter" onchange="filterReg()"><option>Todos</option><option>Exito</option><option>Fallido</option></select>
+    <input type="text" placeholder="Inicio" id="rf-ini"><input type="text" placeholder="Final" id="rf-fin">
+    <div style="flex:1"></div>
+    <button class="by">Exportar</button><button class="bo" onclick="spinBtn(this)">Actualizar</button>
+  </div>
+  <table><thead><tr><th>Operador</th><th>Método de Apertura</th><th>Horario de apertura</th><th>Estado</th></tr></thead><tbody id="rtbody"></tbody></table>`;
+  filterReg();
+}
+function filterReg(){
+  const f=(document.getElementById('rf-filter')||{value:'Todos'}).value;
+  const data=gld(S.lock,'registros').filter(r=>f==='Todos'||r.estado===f);
+  const tb=document.getElementById('rtbody');if(!tb)return;tb.innerHTML='';
+  data.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.op}</td><td>${r.metodo}</td><td>${r.hora}</td><td class="${r.estado==='Exito'?'se':'sf'}">${r.estado}</td>`;tb.appendChild(tr);});
+}
+
+// ─── DELETE CONFIRM ───
+function confirmDel(type,id,label){
+  showModal(`<div class="confirm-q">¿Está seguro que desea eliminar ${label}?</div>
+  <div class="mf"><button class="no" onclick="closeModal()">No</button><button onclick="doDel('${type}',${id})">Si</button></div>`);
+}
+function doDel(type,id){
+  LD[type][S.lock]=LD[type][S.lock].filter(r=>r.id!==id);
+  closeModal();renderTabs(S.tab);
+}
+
+// ─── MODAL ───
+function showModal(html){document.getElementById('mb').innerHTML=html;document.getElementById('mo').classList.add('open');}
+function closeModal(){document.getElementById('mo').classList.remove('open');}
+function moClick(e){if(e.target===document.getElementById('mo'))closeModal();}
+
+// ─── SPIN ───
+function spinBtn(btn){btn.disabled=true;const t=btn.textContent;btn.textContent='...';setTimeout(()=>{btn.textContent=t;btn.disabled=false;},800);}
+
+// ─── UTILS ───
+function stCls(s){return s==='Valido'?'sv':s==='Caducado'?'sc':s==='Inactivo'?'si2':s==='Exito'?'se':'sf';}
+function fmtNow(){const d=new Date();return`${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;}
+</script>
+</body>
+</html>
